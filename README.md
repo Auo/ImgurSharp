@@ -1,6 +1,9 @@
 #ImgurSharp
 
-Easy uploading with C# wrapper to Imgur API v3, ONLY anonymously.
+C# wrapper for Imgur API v3, ONLY anonymously.
+* Upload and edit images
+* Create and edit albums
+
 You'll need to register on Imgur for a ApplicationId. [Imgur api](https://api.imgur.com/)
 
 ### Create
