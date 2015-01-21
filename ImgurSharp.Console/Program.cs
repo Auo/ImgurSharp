@@ -16,7 +16,7 @@ namespace ImgurSharp.Console
         {
             imgur = new Imgur("YourKeyHere");
             UploadImage();
-            System.Console.ReadLine();d
+            System.Console.ReadLine();
         }
 
         private static async void UploadImage()
