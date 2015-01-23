@@ -1,8 +1,8 @@
 #ImgurSharp
 
-C# wrapper for Imgur API v3, ONLY anonymously.
-* Upload and edit images
-* Create and edit albums
+C# wrapper for imgur.com api v3, ONLY anonymously.
+* Upload, edit and delete images
+* Create, edit and delete albums
 
 You'll need to register on Imgur for a ApplicationId. [Imgur api](https://api.imgur.com/)
 
