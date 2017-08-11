@@ -1,4 +1,4 @@
-#ImgurSharp
+# ImgurSharp
 
 C# wrapper for imgur.com api v3, ONLY anonymously.
 * Upload, edit and delete images
@@ -13,13 +13,13 @@ using ImgurSharp;
 Imgur imgur = new Imgur("YOUR APPLICATION ID");
 ```
  
-###Image
-####Upload from url
+### Image
+#### Upload from url
  Store DeleteHash from creation if you want to edit/delete image
 ```csharp
 ImgurImage image = await imgur.UploadImageAnonymous("https://www.link.to.your.image.on.some.url.com/image.png", "name", "title", "description");
 ``` 
-####Upload from Stream
+#### Upload from Stream
  Store DeleteHash from creation if you want to edit/delete image
 ```csharp
 byte[] buff = File.ReadAllBytes("someLocalFile.jpg");
@@ -28,41 +28,41 @@ MemoryStream ms = new MemoryStream(buff);
 ImgurImage image = await imgur.UploadImageAnonymous(ms, "name", "title", "description");
 ``` 
 
-####Update
+#### Update
 ```csharp
 bool updated = await imgur.UpdateImageAnonymous(image.Deletehash, "updated title", "a new description");
 ``` 
-####Delete
+#### Delete
 ```csharp
 bool deleted = await imgur.DeleteImageAnonymous(image.Deletehash);
 ``` 
-####Get 
+#### Get 
 Will NOT return deleteHash
 ```csharp
 ImgurImage image = await imgur.GetImage("imageId");
 ``` 
 
-###Album
+### Album
 
-####Create
+#### Create
  Store DeleteHash from creation if you want to edit/delete album
 ```csharp
 ImgurCreateAlbum createdAlbum = await imgur.CreateAlbumAnonymous(new string[] { "imageId#1","imageId#2" }, "album title", "album description", ImgurAlbumPrivacy.Public, ImgurAlbumLayout.Horizontal, "imageId#1");
 ``` 
 
-####Update
+#### Update
 ```csharp
 bool result = await imgur.UpdateAlbumAnonymous(createdAlbum.DeleteHash, new string[] { "imageId#1","imageId#2" }, "updated album title", "update album description", ImgurAlbumPrivacy.Hidden, ImgurAlbumLayout.Blog, "imageId#2");
 ``` 
-####Delete
+#### Delete
 ```csharp
  bool deleteAlbum = await imgur.DeleteAlbumAnonymous(album.DeleteHash);
 ``` 
-####Add images
+#### Add images
 ```csharp
  bool addImagesResult = await imgur.AddImagesToAlbumAnonymous(album.DeleteHash, new string[] { "imageId#1","imageId#2" });
 ``` 
-####Remove images
+#### Remove images
 ```csharp
 bool removeImagesResult = await imgur.RemoveImagesFromAlbumAnonymous(album.DeleteHash, new string[] {  "imageId#1" });
 ``` 
@@ -72,7 +72,7 @@ Will NOT return deleteHash
 ImgurAlbum album = await imgur.GetAlbum("albumId");
 ``` 
 
-##License
+## License
 The MIT License (MIT)
 
 Copyright (c) [2015] [Andreas Lindgren]
