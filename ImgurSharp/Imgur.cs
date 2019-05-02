@@ -12,7 +12,7 @@ namespace ImgurSharp
     public class Imgur
     {
         #region Properties
-        private string clientId;
+        private readonly string clientId;
         private const string baseUrl = "https://api.imgur.com/3/";
         #endregion
 
@@ -24,6 +24,11 @@ namespace ImgurSharp
         public Imgur(string clientId)
         {
             this.clientId = clientId;
+
+            if (string.IsNullOrWhiteSpace(clientId))
+            {
+                throw new Exception("clientID is not set, please specify");
+            }
         }
         #endregion
 
@@ -76,7 +81,7 @@ namespace ImgurSharp
             using (HttpClient client = new HttpClient())
             {
                 SetHeaders(client);
-                var formContent = new FormUrlEncodedContent(new[] { 
+                var formContent = new FormUrlEncodedContent(new[] {
                     new KeyValuePair<string, string>("image", url),
                     new KeyValuePair<string, string>("name", name),
                     new KeyValuePair<string, string>("title", title),
@@ -121,7 +126,7 @@ namespace ImgurSharp
             {
                 SetHeaders(client);
 
-                var formContent = new FormUrlEncodedContent(new[] { 
+                var formContent = new FormUrlEncodedContent(new[] {
                     new KeyValuePair<string, string>("description", description),
                     new KeyValuePair<string, string>("title", title)
                  });
@@ -151,7 +156,7 @@ namespace ImgurSharp
             {
                 SetHeaders(client);
 
-                var formContent = new FormUrlEncodedContent(new[] { 
+                var formContent = new FormUrlEncodedContent(new[] {
                     new KeyValuePair<string, string>("ids", imageIds.Aggregate((a,b) => a + "," + b)),
                     new KeyValuePair<string, string>("title", title),
                     new KeyValuePair<string, string>("description", description),
@@ -186,7 +191,7 @@ namespace ImgurSharp
             {
                 SetHeaders(client);
 
-                var formContent = new FormUrlEncodedContent(new[] { 
+                var formContent = new FormUrlEncodedContent(new[] {
                     new KeyValuePair<string, string>("ids", imageIds.Aggregate((a,b) => a + "," + b)),
                     new KeyValuePair<string, string>("title", title),
                     new KeyValuePair<string, string>("description", description),
@@ -235,7 +240,7 @@ namespace ImgurSharp
             {
                 SetHeaders(client);
 
-                var formContent = new FormUrlEncodedContent(new[] { 
+                var formContent = new FormUrlEncodedContent(new[] {
                     new KeyValuePair<string, string>("ids", imageIds.Aggregate((a,b) => a + "," + b))
                 });
 
@@ -312,9 +317,6 @@ namespace ImgurSharp
         #region Helpers
         void SetHeaders(HttpClient client)
         {
-            if (string.IsNullOrWhiteSpace(clientId))
-                throw new Exception("clientID is not set, please specify");
-
             client.DefaultRequestHeaders.Add("Authorization", "Client-ID " + clientId);
         }
 
@@ -348,28 +350,17 @@ namespace ImgurSharp
             {
                 errorRoot = JsonConvert.DeserializeObject<ImgurRootObject<ImgurRequestError>>(content);
             }
-            catch (Exception)
-            {
-
-            }
+            catch (Exception) { }
 
             if (errorRoot == null)
                 return;
 
-            switch ((int)responseMessage.StatusCode)
+            if ((int)responseMessage.StatusCode / 100 > 2)
             {
-                case 400:
-                case 401:
-                case 403:
-                case 404:
-                case 429:
-                case 500:
-                    throw new Exception(string.Format(" Error: {0} \n Request: {1} \n Verb: {2} ", errorRoot.Data.Error, errorRoot.Data.Request, errorRoot.Data.Method));
-                case 200:
-                default:
-                    return;
-
+                throw new Exception(string.Format(" Error: {0} \n Request: {1} \n Verb: {2} ", errorRoot.Data.Error, errorRoot.Data.Request, errorRoot.Data.Method));
             }
+
+            return;
         }
         #endregion
     }

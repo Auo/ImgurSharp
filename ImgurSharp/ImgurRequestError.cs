@@ -4,8 +4,9 @@ namespace ImgurSharp
 {
     public class ImgurRequestError
     {
+        // The Errors can apparently be strings or json objects.
         [JsonProperty("error")]
-        public string Error { get; set; }
+        public object Error { get; set; }
         [JsonProperty("request")]
         public string Request { get; set; }
         [JsonProperty("method")]
