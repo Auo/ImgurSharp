@@ -21,37 +21,52 @@ namespace ImgurSharp.Console
 
         private static async void UploadImage()
         {
+            ImgurImage urlImage = null;
+            ImgurImage streamImage = null;
+
+            ImgurCreateAlbum album = null;
             try
             {
                 //Image
-                ImgurImage urlImage = await imgur.UploadImageAnonymous("https://assets-cdn.github.com/images/modules/logos_page/GitHub-Mark.png", "name", "title", "description");
+                 urlImage = await imgur.UploadImageAnonymous("https://github.com/fluidicon.png", "name", "title", "description");
 
                 byte[] buff = File.ReadAllBytes("vs-icon.png");
-                MemoryStream ms = new MemoryStream(buff);
+                using (MemoryStream ms = new MemoryStream(buff))
+                {
+                    streamImage = await imgur.UploadImageAnonymous(ms, "name", "title", "description");
+                }
 
-                ImgurImage streamImage = await imgur.UploadImageAnonymous(ms, "name", "title", "description");
                 bool updated = await imgur.UpdateImageAnonymous(streamImage.Deletehash, "updated title", "a new description");
 
                 ImgurImage getImage = await imgur.GetImage(streamImage.Id);
 
                 //Album
-                ImgurCreateAlbum createdAlbum = await imgur.CreateAlbumAnonymous(new string[] { streamImage.Id }, "album title", "album description", ImgurAlbumPrivacy.Public, ImgurAlbumLayout.Horizontal, streamImage.Id);
+                 album = await imgur.CreateAlbumAnonymous(new string[] { streamImage.Id }, "album title", "album description", ImgurAlbumPrivacy.Public, ImgurAlbumLayout.Horizontal, streamImage.Id);
 
-                bool result = await imgur.UpdateAlbumAnonymous(createdAlbum.DeleteHash, new string[] { streamImage.Id, urlImage.Id }, "updated album title", "update album description", ImgurAlbumPrivacy.Hidden, ImgurAlbumLayout.Blog, urlImage.Id);
-                bool addImagesResult = await imgur.AddImagesToAlbumAnonymous(createdAlbum.DeleteHash, new string[] { streamImage.Id, urlImage.Id });
-                bool removeImagesResult = await imgur.RemoveImagesFromAlbumAnonymous(createdAlbum.DeleteHash, new string[] { urlImage.Id });
-                ImgurAlbum album = await imgur.GetAlbum(createdAlbum.Id);
-
-
-
-                //Delete
-                bool deleteAlbum = await imgur.DeleteAlbumAnonymous(createdAlbum.DeleteHash);
-                bool deletedUrlImage = await imgur.DeleteImageAnonymous(urlImage.Deletehash);
-                bool deletedStreamImage = await imgur.DeleteImageAnonymous(streamImage.Deletehash);
+                bool result = await imgur.UpdateAlbumAnonymous(album.DeleteHash, new string[] { streamImage.Id, urlImage.Id }, "updated album title", "update album description", ImgurAlbumPrivacy.Hidden, ImgurAlbumLayout.Blog, urlImage.Id);
+                bool addImagesResult = await imgur.AddImagesToAlbumAnonymous(album.DeleteHash, new string[] { streamImage.Id, urlImage.Id });
+                bool removeImagesResult = await imgur.RemoveImagesFromAlbumAnonymous(album.DeleteHash, new string[] { urlImage.Id });
+                ImgurAlbum getAlbum = await imgur.GetAlbum(album.Id);
             }
             catch (Exception e)
             {
                 System.Console.Write(e.Message);
+            } finally
+            {
+                if (urlImage != null)
+                {
+                    await imgur.DeleteImageAnonymous(urlImage.Deletehash);
+                }
+                
+                if (streamImage != null)
+                {
+                    await imgur.DeleteImageAnonymous(streamImage.Deletehash);
+                }
+                
+                if (album != null)
+                {
+                    await imgur.DeleteAlbumAnonymous(album.DeleteHash);
+                }
             }
         }
     }
