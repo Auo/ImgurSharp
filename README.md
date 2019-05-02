@@ -23,9 +23,9 @@ ImgurImage image = await imgur.UploadImageAnonymous("https://www.link.to.your.im
  Store DeleteHash from creation if you want to edit/delete image
 ```csharp
 byte[] buff = File.ReadAllBytes("someLocalFile.jpg");
-MemoryStream ms = new MemoryStream(buff);
-
-ImgurImage image = await imgur.UploadImageAnonymous(ms, "name", "title", "description");
+using(MemoryStream ms = new MemoryStream(buff)) {
+	ImgurImage image = await imgur.UploadImageAnonymous(ms, "name", "title", "description");
+}
 ``` 
 
 #### Update
@@ -70,7 +70,7 @@ bool removeImagesResult = await imgur.RemoveImagesFromAlbumAnonymous(album.Delet
 Will NOT return deleteHash
 ```csharp
 ImgurAlbum album = await imgur.GetAlbum("albumId");
-``` 
+```
 
 ## License
 The MIT License (MIT)
