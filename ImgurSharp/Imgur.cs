@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace ImgurSharp
@@ -43,13 +44,17 @@ namespace ImgurSharp
 
                 string base64Image = PhotoStreamToBase64(imageStream);
 
-                var formContent = new FormUrlEncodedContent(new[] { 
-                    new KeyValuePair<string, string>("image", base64Image),
-                    new KeyValuePair<string, string>("name", name),
-                    new KeyValuePair<string, string>("title", title),
-                    new KeyValuePair<string, string>("description", description)
+                var jsonData = JsonConvert.SerializeObject(new
+                {
+                    image = base64Image,
+                    name,
+                    title,
+                    description
                 });
-                HttpResponseMessage response = await client.PostAsync(new Uri(BaseUrl + "upload"), formContent);
+
+                var jsonContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
+                HttpResponseMessage response = await client.PostAsync(new Uri(BaseUrl + "upload"), jsonContent);
+
                 await CheckHttpStatusCode(response);
                 string content = await response.Content.ReadAsStringAsync();
 
@@ -315,20 +320,12 @@ namespace ImgurSharp
 
         string PhotoStreamToBase64(Stream stream)
         {
-            MemoryStream memoryStream = new MemoryStream();
-            stream.CopyTo(memoryStream);
-            byte[] result = memoryStream.ToArray();
-
-            string base64img = System.Convert.ToBase64String(result);
-            return base64img;
-            //StringBuilder sb = new StringBuilder();
-
-            //for (int i = 0; i < base64img.Length; i += 32766)
-            //{
-            //    sb.Append(Uri.EscapeDataString(base64img.Substring(i, Math.Min(32766, base64img.Length - i))));
-            //}
-
-            //return sb.ToString();
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                stream.CopyTo(memoryStream);
+                byte[] result = memoryStream.ToArray();
+                return System.Convert.ToBase64String(result);
+            }
         }
 
         string GetNameFromEnum<T>(int selected) where T : struct
