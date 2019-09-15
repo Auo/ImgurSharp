@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace ImgurSharp
 {
-    public class ImgurAlbum
+    public class Album
     {
         [JsonProperty("id")]
         public string Id { get; set; }
@@ -28,6 +28,6 @@ namespace ImgurSharp
         [JsonProperty("images_count")]
         public int ImagesCount { get; set; }
         [JsonProperty("images")]
-        public List<ImgurImage> Images { get; set; }
+        public List<Image> Images { get; set; }
     }
 }

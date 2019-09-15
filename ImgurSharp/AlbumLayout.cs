@@ -1,6 +1,6 @@
 ﻿namespace ImgurSharp
 {
-    public enum ImgurAlbumLayout
+    public enum AlbumLayout
     {
         Blog,
         Grid,

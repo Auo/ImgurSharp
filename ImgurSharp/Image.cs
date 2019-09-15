@@ -2,7 +2,7 @@
 
 namespace ImgurSharp
 {
-    public class ImgurImage
+    public class Image
     {
         [JsonProperty("id")]
         public string Id { get; set; }

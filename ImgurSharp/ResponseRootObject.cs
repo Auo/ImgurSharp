@@ -2,7 +2,7 @@
 
 namespace ImgurSharp
 {
-    public class ImgurRootObject<T>
+    public class ResponseRootObject<T>
     {
         [JsonProperty("data")]
         public T Data { get; set; }

@@ -1,6 +1,6 @@
 ﻿namespace ImgurSharp
 {
-    public enum ImgurAlbumPrivacy
+    public enum AlbumPrivacy
     {
         Public,
         Hidden,
