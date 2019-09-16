@@ -72,7 +72,7 @@ Album album = await imgur.GetAlbum("albumId");
 ```
 
 ### Exception
-If Imgure returned a response code that was not 2XX then a `ResponseException` will be thrown.
+If Imgur returned a response code that was not 2XX then a `ResponseException` will be thrown.
 
 ## License
 The MIT License (MIT)
