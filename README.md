@@ -1,6 +1,6 @@
 # ImgurSharp
 
-C# wrapper for imgur.com api v3, ONLY anonymously.
+C# net-standard wrapper for Imgur anonymous api
 * Upload, edit and delete images
 * Create, edit and delete albums
 
@@ -47,7 +47,7 @@ ImgurImage image = await imgur.GetImage("imageId");
 #### Create
  Store DeleteHash from creation if you want to edit/delete album
 ```csharp
-ImgurCreateAlbum createdAlbum = await imgur.CreateAlbumAnonymous(new string[] { "imageId#1","imageId#2" }, "album title", "album description", ImgurAlbumPrivacy.Public, ImgurAlbumLayout.Horizontal, "imageId#1");
+ImgurCreateAlbum createdAlbum = await imgur.CreateAlbumAnonymous(new string[] { "imageDeleteHash#1","imageDeleteHash#2" }, "album title", "album description", ImgurAlbumPrivacy.Public, ImgurAlbumLayout.Horizontal, "imageId#1");
 ``` 
 
 #### Update
