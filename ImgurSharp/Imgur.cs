@@ -25,7 +25,7 @@ namespace ImgurSharp
         {
             if (string.IsNullOrWhiteSpace(clientId))
             {
-                throw new Exception("clientID is not set, please specify");
+                throw new Exception("ClientID is not set, please specify");
             }
 
             this.clientId = clientId;
@@ -45,7 +45,7 @@ namespace ImgurSharp
         {
             using (HttpClient client = new HttpClient())
             {
-                SetHeaders(client);
+                SetAuthHeader(client);
 
                 string base64Image = PhotoStreamToBase64(imageStream);
 
@@ -80,7 +80,7 @@ namespace ImgurSharp
         {
             using (HttpClient client = new HttpClient())
             {
-                SetHeaders(client);
+                SetAuthHeader(client);
                 var formContent = new FormUrlEncodedContent(new[] {
                     new KeyValuePair<string, string>("image", url),
                     new KeyValuePair<string, string>("name", name),
@@ -103,7 +103,7 @@ namespace ImgurSharp
         {
             using (HttpClient client = new HttpClient())
             {
-                SetHeaders(client);
+                SetAuthHeader(client);
 
                 HttpResponseMessage response = await client.DeleteAsync(new Uri(baseUrl + "image/" + deleteHash));
                 await CheckHttpStatusCode(response);
@@ -124,7 +124,7 @@ namespace ImgurSharp
         {
             using (HttpClient client = new HttpClient())
             {
-                SetHeaders(client);
+                SetAuthHeader(client);
 
                 var formContent = new FormUrlEncodedContent(new[] {
                     new KeyValuePair<string, string>("description", description),
@@ -153,7 +153,7 @@ namespace ImgurSharp
         {
             using (HttpClient client = new HttpClient())
             {
-                SetHeaders(client);
+                SetAuthHeader(client);
 
                 var formContent = new FormUrlEncodedContent(new[] {
                     new KeyValuePair<string, string>("deletehashes", imageDeleteHashes.Aggregate((a,b) => a + "," + b)),
@@ -188,7 +188,7 @@ namespace ImgurSharp
         {
             using (HttpClient client = new HttpClient())
             {
-                SetHeaders(client);
+                SetAuthHeader(client);
 
                 var formContent = new FormUrlEncodedContent(new[] {
                     new KeyValuePair<string, string>("deleteHashes", imageDeleteHashes.Aggregate((a,b) => a + "," + b)),
@@ -217,7 +217,7 @@ namespace ImgurSharp
         {
             using (HttpClient client = new HttpClient())
             {
-                SetHeaders(client);
+                SetAuthHeader(client);
 
                 HttpResponseMessage response = await client.DeleteAsync(new Uri(baseUrl + "album/" + deleteHash));
                 await CheckHttpStatusCode(response);
@@ -237,7 +237,7 @@ namespace ImgurSharp
         {
             using (HttpClient client = new HttpClient())
             {
-                SetHeaders(client);
+                SetAuthHeader(client);
 
                 var formContent = new FormUrlEncodedContent(new[] {
                     new KeyValuePair<string, string>("deletehashes", imageDeleteHashes.Aggregate((a,b) => a + "," + b))
@@ -263,7 +263,7 @@ namespace ImgurSharp
         {
             using (HttpClient client = new HttpClient())
             {
-                SetHeaders(client);
+                SetAuthHeader(client);
 
                 HttpResponseMessage response = await client.DeleteAsync(new Uri(baseUrl + "album/" + deleteHash + "/remove_images?ids=" + imageIds.Aggregate((a, b) => a + "," + b)));
                 await CheckHttpStatusCode(response);
@@ -282,7 +282,8 @@ namespace ImgurSharp
         {
             using (HttpClient client = new HttpClient())
             {
-                SetHeaders(client);
+                SetAuthHeader(client);
+
                 HttpResponseMessage response = await client.GetAsync(new Uri(baseUrl + "album/" + albumId));
                 await CheckHttpStatusCode(response);
                 string content = await response.Content.ReadAsStringAsync();
@@ -301,7 +302,8 @@ namespace ImgurSharp
         {
             using (HttpClient client = new HttpClient())
             {
-                SetHeaders(client);
+                SetAuthHeader(client);
+
                 HttpResponseMessage response = await client.GetAsync(new Uri(baseUrl + "image/" + imageId));
                 await CheckHttpStatusCode(response);
                 string content = await response.Content.ReadAsStringAsync();
@@ -314,7 +316,7 @@ namespace ImgurSharp
         #endregion
 
         #region Helpers
-        void SetHeaders(HttpClient client)
+        void SetAuthHeader(HttpClient client)
         {
             client.DefaultRequestHeaders.Add("Authorization", "Client-ID " + clientId);
         }
@@ -341,7 +343,6 @@ namespace ImgurSharp
 
         private async Task CheckHttpStatusCode(HttpResponseMessage responseMessage)
         {
-            //Imgur StatusCodes
             var content = await responseMessage.Content.ReadAsStringAsync();
             ResponseRootObject<RequestError> errorRoot = null;
 
@@ -356,7 +357,7 @@ namespace ImgurSharp
 
             if ((int)responseMessage.StatusCode / 100 > 2)
             {
-                throw new Exception(string.Format(" Error: {0} \n Request: {1} \n Verb: {2} ", errorRoot.Data.Error, errorRoot.Data.Request, errorRoot.Data.Method));
+                throw new ResponseException(string.Format(" Error: {0} \n Request: {1} \n Verb: {2} ", errorRoot.Data.Error, errorRoot.Data.Request, errorRoot.Data.Method));
             }
 
             return;

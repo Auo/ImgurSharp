@@ -4,7 +4,7 @@ C# net-standard wrapper for Imgur anonymous api
 * Upload, edit and delete images
 * Create, edit and delete albums
 
-You'll need to register on Imgur for a ApplicationId / Client-ID. [Imgur api](https://apidocs.imgur.com/)
+You'll need to register for an ApplicationId / Client-Id. [Imgur api](https://apidocs.imgur.com/)
 
 ### Create
 ```csharp
@@ -70,6 +70,9 @@ Will NOT return deleteHash
 ```csharp
 Album album = await imgur.GetAlbum("albumId");
 ```
+
+### Exception
+If Imgure returned a response code that was not 2XX then a `ResponseException` will be thrown.
 
 ## License
 The MIT License (MIT)
