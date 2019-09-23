@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 
 namespace ImgurSharp
 {
-    public class Imgur
+    public class Imgur : IDisposable
     {
         #region Properties
-        private readonly string clientId;
+        private readonly HttpClient client;
         private const string baseUrl = "https://api.imgur.com/3/";
         #endregion
 
@@ -21,14 +21,17 @@ namespace ImgurSharp
         /// Constructor of Imgur object
         /// </summary>
         /// <param name="clientId">Id of application, so Imgur knows which app is submitting data</param>
-        public Imgur(string clientId)
+        public Imgur(string clientId) : this(clientId, null) { }
+
+        public Imgur(string clientId, HttpMessageHandler handler)
         {
             if (string.IsNullOrWhiteSpace(clientId))
             {
                 throw new Exception("ClientID is not set, please specify");
             }
 
-            this.clientId = clientId;
+            client = handler != null ? new HttpClient(handler) : new HttpClient();
+            client.DefaultRequestHeaders.Add("Authorization", "Client-ID " + clientId);
         }
         #endregion
 
@@ -43,30 +46,25 @@ namespace ImgurSharp
         /// <returns>Image object</returns>
         public async Task<Image> UploadImageAnonymous(Stream imageStream, string name, string title, string description)
         {
-            using (HttpClient client = new HttpClient())
+            string base64Image = PhotoStreamToBase64(imageStream);
+
+            var jsonData = JsonConvert.SerializeObject(new
             {
-                SetAuthHeader(client);
+                image = base64Image,
+                name,
+                title,
+                description
+            });
 
-                string base64Image = PhotoStreamToBase64(imageStream);
+            var jsonContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await client.PostAsync(baseUrl + "upload", jsonContent);
 
-                var jsonData = JsonConvert.SerializeObject(new
-                {
-                    image = base64Image,
-                    name,
-                    title,
-                    description
-                });
+            await CheckHttpStatusCode(response);
+            string content = await response.Content.ReadAsStringAsync();
 
-                var jsonContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
-                HttpResponseMessage response = await client.PostAsync(new Uri(baseUrl + "upload"), jsonContent);
+            ResponseRootObject<Image> imgRoot = JsonConvert.DeserializeObject<ResponseRootObject<Image>>(content);
 
-                await CheckHttpStatusCode(response);
-                string content = await response.Content.ReadAsStringAsync();
-
-                ResponseRootObject<Image> imgRoot = JsonConvert.DeserializeObject<ResponseRootObject<Image>>(content);
-
-                return imgRoot.Data;
-            }
+            return imgRoot.Data;
         }
         /// <summary>
         /// Upload Image
@@ -78,21 +76,17 @@ namespace ImgurSharp
         /// <returns>Image object</returns>
         public async Task<Image> UploadImageAnonymous(string url, string name, string title, string description)
         {
-            using (HttpClient client = new HttpClient())
-            {
-                SetAuthHeader(client);
-                var formContent = new FormUrlEncodedContent(new[] {
+            var formContent = new FormUrlEncodedContent(new[] {
                     new KeyValuePair<string, string>("image", url),
                     new KeyValuePair<string, string>("name", name),
                     new KeyValuePair<string, string>("title", title),
                     new KeyValuePair<string, string>("description", description) });
-                HttpResponseMessage response = await client.PostAsync(new Uri(baseUrl + "upload"), formContent);
-                await CheckHttpStatusCode(response);
-                string content = await response.Content.ReadAsStringAsync();
-                ResponseRootObject<Image> imgRoot = JsonConvert.DeserializeObject<ResponseRootObject<Image>>(content);
+            HttpResponseMessage response = await client.PostAsync(baseUrl + "upload", formContent);
+            await CheckHttpStatusCode(response);
+            string content = await response.Content.ReadAsStringAsync();
+            ResponseRootObject<Image> imgRoot = JsonConvert.DeserializeObject<ResponseRootObject<Image>>(content);
 
-                return imgRoot.Data;
-            }
+            return imgRoot.Data;
         }
         /// <summary>
         /// Deletes Image from Imgur
@@ -101,17 +95,12 @@ namespace ImgurSharp
         /// <returns></returns>
         public async Task<bool> DeleteImageAnonymous(string deleteHash)
         {
-            using (HttpClient client = new HttpClient())
-            {
-                SetAuthHeader(client);
+            HttpResponseMessage response = await client.DeleteAsync(baseUrl + "image/" + deleteHash);
+            await CheckHttpStatusCode(response);
+            string content = await response.Content.ReadAsStringAsync();
+            ResponseRootObject<bool> deleteRoot = JsonConvert.DeserializeObject<ResponseRootObject<bool>>(content);
 
-                HttpResponseMessage response = await client.DeleteAsync(new Uri(baseUrl + "image/" + deleteHash));
-                await CheckHttpStatusCode(response);
-                string content = await response.Content.ReadAsStringAsync();
-                ResponseRootObject<bool> deleteRoot = JsonConvert.DeserializeObject<ResponseRootObject<bool>>(content);
-
-                return deleteRoot.Data;
-            }
+            return deleteRoot.Data;
         }
         /// <summary>
         /// Update Image
@@ -122,22 +111,17 @@ namespace ImgurSharp
         /// <returns>bool of result</returns>
         public async Task<bool> UpdateImageAnonymous(string deleteHash, string title, string description)
         {
-            using (HttpClient client = new HttpClient())
-            {
-                SetAuthHeader(client);
-
-                var formContent = new FormUrlEncodedContent(new[] {
+            var formContent = new FormUrlEncodedContent(new[] {
                     new KeyValuePair<string, string>("description", description),
                     new KeyValuePair<string, string>("title", title)
                  });
 
-                HttpResponseMessage response = await client.PutAsync(new Uri(baseUrl + "image/" + deleteHash), formContent);
-                await CheckHttpStatusCode(response);
-                string content = await response.Content.ReadAsStringAsync();
-                ResponseRootObject<bool> deleteRoot = JsonConvert.DeserializeObject<ResponseRootObject<bool>>(content);
+            HttpResponseMessage response = await client.PutAsync(new Uri(baseUrl + "image/" + deleteHash), formContent);
+            await CheckHttpStatusCode(response);
+            string content = await response.Content.ReadAsStringAsync();
+            ResponseRootObject<bool> deleteRoot = JsonConvert.DeserializeObject<ResponseRootObject<bool>>(content);
 
-                return deleteRoot.Data;
-            }
+            return deleteRoot.Data;
         }
         /// <summary>
         /// Creates an Album on Imgur
@@ -151,11 +135,7 @@ namespace ImgurSharp
         /// <returns>CreateAlbum which contains deletehash and link</returns>
         public async Task<CreateAlbum> CreateAlbumAnonymous(IEnumerable<string> imageDeleteHashes, string title, string description, AlbumPrivacy privacy, AlbumLayout layout, string coverImageId)
         {
-            using (HttpClient client = new HttpClient())
-            {
-                SetAuthHeader(client);
-
-                var formContent = new FormUrlEncodedContent(new[] {
+            var formContent = new FormUrlEncodedContent(new[] {
                     new KeyValuePair<string, string>("deletehashes", imageDeleteHashes.Aggregate((a,b) => a + "," + b)),
                     new KeyValuePair<string, string>("title", title),
                     new KeyValuePair<string, string>("description", description),
@@ -164,14 +144,13 @@ namespace ImgurSharp
                     new KeyValuePair<string, string>("cover", coverImageId),
                  });
 
-                HttpResponseMessage response = await client.PostAsync(new Uri(baseUrl + "album"), formContent);
-                await CheckHttpStatusCode(response);
-                string content = await response.Content.ReadAsStringAsync();
+            HttpResponseMessage response = await client.PostAsync(baseUrl + "album", formContent);
+            await CheckHttpStatusCode(response);
+            string content = await response.Content.ReadAsStringAsync();
 
-                ResponseRootObject<CreateAlbum> createRoot = JsonConvert.DeserializeObject<ResponseRootObject<CreateAlbum>>(content);
+            ResponseRootObject<CreateAlbum> createRoot = JsonConvert.DeserializeObject<ResponseRootObject<CreateAlbum>>(content);
 
-                return createRoot.Data;
-            }
+            return createRoot.Data;
         }
         /// <summary>
         /// Updates ImgurAlbum
@@ -186,11 +165,7 @@ namespace ImgurSharp
         /// <returns>bool of result</returns>
         public async Task<bool> UpdateAlbumAnonymous(string deleteHash, IEnumerable<string> imageDeleteHashes, string title, string description, AlbumPrivacy privacy, AlbumLayout layout, string cover)
         {
-            using (HttpClient client = new HttpClient())
-            {
-                SetAuthHeader(client);
-
-                var formContent = new FormUrlEncodedContent(new[] {
+            var formContent = new FormUrlEncodedContent(new[] {
                     new KeyValuePair<string, string>("deleteHashes", imageDeleteHashes.Aggregate((a,b) => a + "," + b)),
                     new KeyValuePair<string, string>("title", title),
                     new KeyValuePair<string, string>("description", description),
@@ -199,14 +174,13 @@ namespace ImgurSharp
                     new KeyValuePair<string, string>("cover", cover),
                  });
 
-                HttpResponseMessage response = await client.PutAsync(new Uri(baseUrl + "album/" + deleteHash), formContent);
-                await CheckHttpStatusCode(response);
-                string content = await response.Content.ReadAsStringAsync();
+            HttpResponseMessage response = await client.PutAsync(baseUrl + "album/" + deleteHash, formContent);
+            await CheckHttpStatusCode(response);
+            string content = await response.Content.ReadAsStringAsync();
 
-                ResponseRootObject<bool> updateRoot = JsonConvert.DeserializeObject<ResponseRootObject<bool>>(content);
+            ResponseRootObject<bool> updateRoot = JsonConvert.DeserializeObject<ResponseRootObject<bool>>(content);
 
-                return updateRoot.Data;
-            }
+            return updateRoot.Data;
         }
         /// <summary>
         /// Deletes album from Imgur
@@ -215,17 +189,12 @@ namespace ImgurSharp
         /// <returns></returns>
         public async Task<bool> DeleteAlbumAnonymous(string deleteHash)
         {
-            using (HttpClient client = new HttpClient())
-            {
-                SetAuthHeader(client);
+            HttpResponseMessage response = await client.DeleteAsync(baseUrl + "album/" + deleteHash);
+            await CheckHttpStatusCode(response);
+            string content = await response.Content.ReadAsStringAsync();
+            ResponseRootObject<bool> deleteRoot = JsonConvert.DeserializeObject<ResponseRootObject<bool>>(content);
 
-                HttpResponseMessage response = await client.DeleteAsync(new Uri(baseUrl + "album/" + deleteHash));
-                await CheckHttpStatusCode(response);
-                string content = await response.Content.ReadAsStringAsync();
-                ResponseRootObject<bool> deleteRoot = JsonConvert.DeserializeObject<ResponseRootObject<bool>>(content);
-
-                return deleteRoot.Data;
-            }
+            return deleteRoot.Data;
         }
         /// <summary>
         /// Add images to excisting album
@@ -235,23 +204,18 @@ namespace ImgurSharp
         /// <returns></returns>
         public async Task<bool> AddImagesToAlbumAnonymous(string deleteHash, IEnumerable<string> imageDeleteHashes)
         {
-            using (HttpClient client = new HttpClient())
-            {
-                SetAuthHeader(client);
-
-                var formContent = new FormUrlEncodedContent(new[] {
+            var formContent = new FormUrlEncodedContent(new[] {
                     new KeyValuePair<string, string>("deletehashes", imageDeleteHashes.Aggregate((a,b) => a + "," + b))
                 });
 
-                HttpResponseMessage response = await client.PostAsync(new Uri(baseUrl + "album/" + deleteHash), formContent);
+            HttpResponseMessage response = await client.PostAsync(new Uri(baseUrl + "album/" + deleteHash), formContent);
 
-                await CheckHttpStatusCode(response);
-                string content = await response.Content.ReadAsStringAsync();
+            await CheckHttpStatusCode(response);
+            string content = await response.Content.ReadAsStringAsync();
 
-                ResponseRootObject<bool> addRoot = JsonConvert.DeserializeObject<ResponseRootObject<bool>>(content);
+            ResponseRootObject<bool> addRoot = JsonConvert.DeserializeObject<ResponseRootObject<bool>>(content);
 
-                return addRoot.Data;
-            }
+            return addRoot.Data;
         }
         /// <summary>
         /// Removes images from album
@@ -261,17 +225,12 @@ namespace ImgurSharp
         /// <returns></returns>
         public async Task<bool> RemoveImagesFromAlbumAnonymous(string deleteHash, IEnumerable<string> imageIds)
         {
-            using (HttpClient client = new HttpClient())
-            {
-                SetAuthHeader(client);
+            HttpResponseMessage response = await client.DeleteAsync(baseUrl + "album/" + deleteHash + "/remove_images?ids=" + imageIds.Aggregate((a, b) => a + "," + b));
+            await CheckHttpStatusCode(response);
+            string content = await response.Content.ReadAsStringAsync();
+            ResponseRootObject<bool> removeRoot = JsonConvert.DeserializeObject<ResponseRootObject<bool>>(content);
 
-                HttpResponseMessage response = await client.DeleteAsync(new Uri(baseUrl + "album/" + deleteHash + "/remove_images?ids=" + imageIds.Aggregate((a, b) => a + "," + b)));
-                await CheckHttpStatusCode(response);
-                string content = await response.Content.ReadAsStringAsync();
-                ResponseRootObject<bool> removeRoot = JsonConvert.DeserializeObject<ResponseRootObject<bool>>(content);
-
-                return removeRoot.Data;
-            }
+            return removeRoot.Data;
         }
         /// <summary>
         /// Gets an album from Imgur
@@ -280,18 +239,13 @@ namespace ImgurSharp
         /// <returns></returns>
         public async Task<Album> GetAlbum(string albumId)
         {
-            using (HttpClient client = new HttpClient())
-            {
-                SetAuthHeader(client);
+            HttpResponseMessage response = await client.GetAsync(baseUrl + "album/" + albumId);
+            await CheckHttpStatusCode(response);
+            string content = await response.Content.ReadAsStringAsync();
 
-                HttpResponseMessage response = await client.GetAsync(new Uri(baseUrl + "album/" + albumId));
-                await CheckHttpStatusCode(response);
-                string content = await response.Content.ReadAsStringAsync();
+            ResponseRootObject<Album> albumRoot = JsonConvert.DeserializeObject<ResponseRootObject<Album>>(content);
 
-                ResponseRootObject<Album> albumRoot = JsonConvert.DeserializeObject<ResponseRootObject<Album>>(content);
-
-                return albumRoot.Data;
-            }
+            return albumRoot.Data;
         }
         /// <summary>
         /// Gets an image from Imgur
@@ -300,26 +254,17 @@ namespace ImgurSharp
         /// <returns></returns>
         public async Task<Image> GetImage(string imageId)
         {
-            using (HttpClient client = new HttpClient())
-            {
-                SetAuthHeader(client);
+            HttpResponseMessage response = await client.GetAsync(baseUrl + "image/" + imageId);
+            await CheckHttpStatusCode(response);
+            string content = await response.Content.ReadAsStringAsync();
 
-                HttpResponseMessage response = await client.GetAsync(new Uri(baseUrl + "image/" + imageId));
-                await CheckHttpStatusCode(response);
-                string content = await response.Content.ReadAsStringAsync();
+            ResponseRootObject<Image> imageRoot = JsonConvert.DeserializeObject<ResponseRootObject<Image>>(content);
 
-                ResponseRootObject<Image> imageRoot = JsonConvert.DeserializeObject<ResponseRootObject<Image>>(content);
-
-                return imageRoot.Data;
-            }
+            return imageRoot.Data;
         }
         #endregion
 
         #region Helpers
-        void SetAuthHeader(HttpClient client)
-        {
-            client.DefaultRequestHeaders.Add("Authorization", "Client-ID " + clientId);
-        }
 
         string PhotoStreamToBase64(Stream stream)
         {
@@ -361,6 +306,14 @@ namespace ImgurSharp
             }
 
             return;
+        }
+
+        public void Dispose()
+        {
+            if (client != null)
+            {
+                client.Dispose();
+            }
         }
         #endregion
     }

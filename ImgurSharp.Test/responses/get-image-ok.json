@@ -1,0 +1,44 @@
+{
+  "data": {
+    "id": "some-image-id",
+    "title": null,
+    "description": null,
+    "datetime": 1568560562,
+    "type": "image/jpeg",
+    "animated": false,
+    "width": 480,
+    "height": 647,
+    "size": 36687,
+    "views": 1583,
+    "bandwidth": 58075521,
+    "vote": null,
+    "favorite": false,
+    "nsfw": false,
+    "section": null,
+    "account_url": null,
+    "account_id": null,
+    "is_ad": false,
+    "in_most_viral": false,
+    "has_sound": false,
+    "tags": [],
+    "ad_type": 0,
+    "ad_url": "",
+    "edited": "0",
+    "in_gallery": false,
+    "link": "https://i.imgur.com/some-image-id.jpg",
+    "ad_config": {
+      "safeFlags": [
+        "sixth_mod_safe",
+        "onsfw_mod_safe",
+        "share"
+      ],
+      "highRiskFlags": [
+        "not_in_gallery"
+      ],
+      "unsafeFlags": [],
+      "showsAds": true
+    }
+  },
+  "success": true,
+  "status": 200
+}

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace ImgurSharp.Test
 {
     [TestClass]
-    public class ImgurTest
+    public class ImgurIntegrationTest
     {
         private static Imgur imgur;
 
@@ -35,7 +35,7 @@ namespace ImgurSharp.Test
         public async Task TestGetImage()
         {
             //https://i.imgur.com/y3NI9PF.jpg
-            Image image = await imgur.GetImage("y3NI9PF");
+            Image image = await imgur.GetImage("y3NI9PA");
             Assert.IsNotNull(image);
         }
 
@@ -51,7 +51,7 @@ namespace ImgurSharp.Test
             {
                 urlImage = await imgur.UploadImageAnonymous("https://github.com/fluidicon.png", "name", "title", "description");
 
-                using (MemoryStream ms = new MemoryStream(File.ReadAllBytes("vs-icon.png")))
+                using (Stream ms = ResourceRetriever.GetStream("images/vs-icon.png"))
                 {
                     streamImage = await imgur.UploadImageAnonymous(ms, "name", "title", "description");
                 }

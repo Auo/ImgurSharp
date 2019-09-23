@@ -10,7 +10,9 @@ You'll need to register for an ApplicationId / Client-Id. [Imgur api](https://ap
 ```csharp
 using ImgurSharp;
 
-Imgur imgur = new Imgur("YOUR APPLICATION ID");
+using(Imgur imgur = new Imgur("YOUR APPLICATION ID")) {
+	// upload/update/delete your files here!
+}
 ```
  
 ### Image

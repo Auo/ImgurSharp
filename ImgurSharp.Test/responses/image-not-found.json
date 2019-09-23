@@ -1,0 +1,9 @@
+{
+  "data": {
+    "error": "Unable to find an image with the id, non-existing-id",
+    "request": "/3/image/non-existing-id",
+    "method": "GET"
+  },
+  "success": false,
+  "status": 404
+}

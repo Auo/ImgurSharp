@@ -7,13 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="images\vs-icon.png" />
+    <None Remove="responses\delete-image-ok.json" />
+    <None Remove="responses\image-not-found.json" />
+    <None Remove="responses\upload-image-stream-ok.json" />
     <None Remove="vs-icon.png" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="vs-icon.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <EmbeddedResource Include="images\*.png" />
+
+    <EmbeddedResource Include="responses/*.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,6 +25,7 @@
     <PackageReference Include="MSTest.TestAdapter" Version="2.0.0" />
     <PackageReference Include="MSTest.TestFramework" Version="2.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="RichardSzalay.MockHttp" Version="5.0.0" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.5.0" />
   </ItemGroup>
 
