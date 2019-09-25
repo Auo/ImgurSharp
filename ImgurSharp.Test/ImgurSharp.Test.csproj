@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <None Remove="images\vs-icon.png" />
+    <None Remove="responses\create-album-ok.json" />
     <None Remove="responses\delete-image-ok.json" />
     <None Remove="responses\image-not-found.json" />
     <None Remove="responses\upload-image-stream-ok.json" />
