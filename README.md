@@ -1,5 +1,7 @@
 # ImgurSharp
 
+⚠ FYI: The package that is on NuGet is **NOT** something that I've published.
+
 C# net-standard wrapper for Imgur anonymous api
 * Upload, edit and delete images
 * Create, edit and delete albums
