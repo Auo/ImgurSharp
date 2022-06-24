@@ -1,4 +1,5 @@
 # ImgurSharp
+**⚠ FYI: I've decided to stop maintaining this library. Feel free to fork and create a better one!**
 
 ⚠ FYI: The package that is on NuGet is **NOT** something that I've published.
 
